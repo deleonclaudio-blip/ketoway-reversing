@@ -72,11 +72,21 @@ database.ref('users/' + uid + '/userDetails').update({ [key]: value })
 ```
 Patch de **un campo a la vez** (así el quiz de onboarding guarda cada respuesta: `startingWeight`, `goalWeight`, `gender`, `height`, `age`, `activityLevel`, `unitsOfMeasure`, `numberOfWorkoutsPerWeek` — los mismos de `DEFAULT_USER_DETAILS`).
 
-**`chooseFastingPlan(plan)`**:
+**`chooseFastingPlan(plan)`** (hook `useChooseFastingPlan`, `mutationKey: ['fasting']`):
 ```js
 database.ref('users/' + uid + '/fasting/plan').update(plan)
 ```
-Escribe el objeto del plan de ayuno elegido (forma del `plan` aún sin expandir).
+El `plan` es uno de los presets del catálogo **`FASTING_PLANS`**:
+```js
+[
+  { title: "14:10", level: 1, fastingHours: 14, eatingHours: 10 },
+  { title: "16:8",  level: 1, fastingHours: 16, eatingHours: 8  },
+  { title: "18:6",  level: 2, fastingHours: 18, eatingHours: 6  },
+  { title: "20:4",  level: 3, fastingHours: 20, eatingHours: 4  },
+]
+```
+Forma: `{ title: string, level: number, fastingHours: number, eatingHours: number }`.
+`startTime`/`endTime`/`isActive` **no** van acá — son de la sesión de ayuno activa (hook `useStartFasting`), otro nodo.
 
 > Corrección respecto a una versión previa: `/userDetails`, `/fasting`, `/fasting/plan` y `/fastingHistory` **no son rutas HTTP de flmng** sino nodos de Firebase RTDB.
 
@@ -140,7 +150,7 @@ Son **semillas por defecto**; el quiz de onboarding las sobreescribe luego (vía
 ## 4. Pendientes / preguntas abiertas
 
 1. **Métodos no confirmados** (marcados "i"): verificar GET/PUT/POST exacto por endpoint en el IR.
-2. ~~Payloads de `/userDetails`, `/fasting/plan`~~ — **resuelto** (§2.1: son writes de Firebase RTDB vía `update`). Falta: `/subscriptions/relevant`, `/v1/events`, y la forma del objeto `plan`.
+2. ~~Payloads de `/userDetails`, `/fasting/plan`, forma del `plan`~~ — **resuelto** (§2.1: RTDB `update`; `plan` = preset de `FASTING_PLANS`). Falta: `/subscriptions/relevant`, `/v1/events`.
 3. **Enums**: `Gender`, `UnitsOfMeasure`, valores de `activityLevel`.
 4. **Headers completos** por request (además de `Authorization`): reCAPTCHA token, versión de app, locale.
 5. **Lógica de paywall/premium**: cómo combina RevenueCat + `/subscriptions/relevant` para decidir acceso.
