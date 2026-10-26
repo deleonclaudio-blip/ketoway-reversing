@@ -242,7 +242,26 @@ recipe = {
 - Comidas por tipo: `breakfast`, `lunch`, `dinner`, `snack`; plan estructurado por `day`.
 - Exportación de recetas a **PDF**.
 
-> El esquema completo de la respuesta de contenido (anidamiento día→comidas→receta) no se mapeó exhaustivamente; los campos de receta de arriba sí están confirmados en el parseo.
+### Esquema anidado (plan → día → recetas)
+```
+Plan
+ └─ plan_day: N                         # día numerado del plan
+     └─ getClientRecipes({ plan_day, languageCode }) → recipes[]
+         recipe {
+           client_recipe_id,
+           title, imageUrl,
+           meal,                        # tipo (breakfast/lunch/dinner/snack)
+           order,                       # orden dentro del día
+           isFavorite,
+           calories, protein, fat, carbs,
+           ingredients: [ { amount, ... } ],
+           howToMake
+         }
+         + alternativas: getRecipeAlternatives / getSingleAlternativeRecipe
+```
+**Content client:** `getClientRecipes({plan_day, languageCode})`, `getSingleRecipe({client_recipe_id})`, `getRecipeAlternatives(...)`, `getSingleAlternativeRecipe(...)`. `HEAD /v1/content/mains/schemas/1/locales/<locale>` = chequeo de disponibilidad por idioma.
+
+> El **path/base HTTP exacto** de `getClientRecipes` no se fijó (es un content client por parámetros, no ruta literal); el anidamiento plan_day→recipes→alternativas y los campos de receta sí están confirmados.
 
 ---
 
