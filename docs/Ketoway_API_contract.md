@@ -42,9 +42,6 @@ Método: **(c)** = confirmado en el código, **(i)** = inferido por nombre/semá
 | Ruta | Método | Qué hace |
 |---|---|---|
 | `/register` | POST (c) | alta de usuario (ver §3) |
-| `/userDetails`, `/userDetails/` | GET / PUT (i) | perfil del usuario |
-| `/fasting`, `/fasting/plan` | GET (i) | plan de ayuno actual |
-| `/fastingHistory`, `/fastingHistory/` | GET / POST (i) | historial de ayunos (lee y registra) |
 | `/subscriptions`, `/subscriptions/relevant` | GET (i) | estado y ofertas de suscripción |
 | `/messages` | GET (i) | mensajes/notificaciones in-app |
 | `/v1/content/mains/schemas/1/locales/…` | GET (i) | contenido (planes/comidas) por locale |
@@ -57,6 +54,31 @@ Método: **(c)** = confirmado en el código, **(i)** = inferido por nombre/semá
 ### No pertenecen a flmng (no confundir)
 - `/v1/subscribers`, `/v1/receipts` → **RevenueCat** (`api.revenuecat.com`), `Authorization: Bearer appl_…`.
 - `/v1/token`, `identitytoolkit` → **Firebase / GCP Identity Toolkit**.
+
+### 2.1 Datos de usuario — Firebase Realtime Database (NO es flmng HTTP)
+
+Los datos por usuario **no pasan por el API HTTP**: el cliente los lee/escribe directo contra **Firebase RTDB** bajo `users/<uid>/…` (uid = Firebase Auth). Confirmado en el bundle (`database.ref(...).onValue/get/update`).
+
+| Nodo RTDB | Operaciones | Función(es) |
+|---|---|---|
+| `users/<uid>/userDetails` | `onValue` (listener), `get` (one-shot), `update` (patch) | `useListenToMWRTDB`, `updateUserProperty(key,value)` |
+| `users/<uid>/fasting/plan` | `update` | `chooseFastingPlan(plan)` |
+| `users/<uid>/fastingHistory` | `get` | — |
+| `users/<uid>/weightHistory` | `get`, `update` | — |
+
+**`updateUserProperty(key, value)`** (equivalente al "PUT" del perfil):
+```js
+database.ref('users/' + uid + '/userDetails').update({ [key]: value })
+```
+Patch de **un campo a la vez** (así el quiz de onboarding guarda cada respuesta: `startingWeight`, `goalWeight`, `gender`, `height`, `age`, `activityLevel`, `unitsOfMeasure`, `numberOfWorkoutsPerWeek` — los mismos de `DEFAULT_USER_DETAILS`).
+
+**`chooseFastingPlan(plan)`**:
+```js
+database.ref('users/' + uid + '/fasting/plan').update(plan)
+```
+Escribe el objeto del plan de ayuno elegido (forma del `plan` aún sin expandir).
+
+> Corrección respecto a una versión previa: `/userDetails`, `/fasting`, `/fasting/plan` y `/fastingHistory` **no son rutas HTTP de flmng** sino nodos de Firebase RTDB.
 
 ---
 
@@ -111,14 +133,14 @@ Base + overrides del getter (`gender` ← `defaultUserGender` o `Gender.female`;
   numberOfWorkoutsPerWeek: 3
 }
 ```
-Son **semillas por defecto**; el quiz de onboarding las sobreescribe luego (vía `PUT /userDetails`). Los valores (80/70/172/55) son placeholders, no datos reales del usuario.
+Son **semillas por defecto**; el quiz de onboarding las sobreescribe luego (vía `updateUserProperty` → Firebase RTDB `users/<uid>/userDetails`, ver §2.1). Los valores (80/70/172/55) son placeholders, no datos reales del usuario.
 
 ---
 
 ## 4. Pendientes / preguntas abiertas
 
 1. **Métodos no confirmados** (marcados "i"): verificar GET/PUT/POST exacto por endpoint en el IR.
-2. **Payloads de** `/userDetails` (PUT), `/fasting/plan`, `/subscriptions/relevant`, `/v1/events` — trazar.
+2. ~~Payloads de `/userDetails`, `/fasting/plan`~~ — **resuelto** (§2.1: son writes de Firebase RTDB vía `update`). Falta: `/subscriptions/relevant`, `/v1/events`, y la forma del objeto `plan`.
 3. **Enums**: `Gender`, `UnitsOfMeasure`, valores de `activityLevel`.
 4. **Headers completos** por request (además de `Authorization`): reCAPTCHA token, versión de app, locale.
 5. **Lógica de paywall/premium**: cómo combina RevenueCat + `/subscriptions/relevant` para decidir acceso.
