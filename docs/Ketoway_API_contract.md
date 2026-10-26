@@ -168,11 +168,28 @@ Constantes del módulo:
 
 ---
 
+## 6. Enums del perfil
+
+- **`Gender`**: `{ female: "female", male: "male" }`
+- **`UnitsOfMeasure`**: `{ Metric: "metric", Imperial: "imperial" }`
+- **`ActivityLevelGroup`**: `{ low: "low", medium: "medium", high: "high" }`
+- **`activityLevel`**: índice 0–5 (slider del quiz), agrupado:
+
+  | activityLevel | grupo | levelValue |
+  |---|---|---|
+  | 0, 1 | low | 1 |
+  | 2, 3 | medium | 2 |
+  | 4, 5 | high | 3 |
+
+También hay enums `AgeGroup` y `UnitOfLength`. El perfil calcula el **BMR de Mifflin-St Jeor** (`10·peso + 6.25·altura − 5·edad ± sexo`) para las metas calóricas.
+
+---
+
 ## 4. Pendientes / preguntas abiertas
 
 1. **Métodos no confirmados** (marcados "i"): verificar GET/PUT/POST exacto por endpoint en el IR.
 2. ~~Payloads de `/userDetails`, `/fasting/plan`, `/subscriptions/relevant`, `/v1/events`~~ — **resuelto** (§2.1 RTDB; §5 funnel API + RevenueCat). `/v1/events` = RevenueCat, no flmng.
-3. **Enums**: `Gender`, `UnitsOfMeasure`, valores de `activityLevel`.
+3. ~~Enums `Gender`, `UnitsOfMeasure`, `activityLevel`~~ — **resuelto** (§6).
 4. **Headers completos** por request (además de `Authorization`): reCAPTCHA token, versión de app, locale.
 5. ~~Lógica de paywall/premium~~ — **resuelto** (§5: entitlement `pro` de RevenueCat + funnel API `/subscriptions/relevant`).
 
