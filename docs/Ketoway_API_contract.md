@@ -185,6 +185,38 @@ También hay enums `AgeGroup` y `UnitOfLength`. El perfil calcula el **BMR de Mi
 
 ---
 
+## 7. Quiz → metas calóricas → plan
+
+El quiz de onboarding recolecta `weight`, `height`, `age`, `gender`, `activityLevel`, `goalWeight`, `mealsADay` (guardados en `userDetails`, RTDB). De ahí se calculan las metas:
+
+### `getMinMaxCaloriesIntake(profile)`
+1. **BMR (Mifflin-St Jeor):** `10·peso + 6.25·altura − 5·edad`
+2. **Ajuste sexo:** `female → −161`, `male → +161`
+3. **TDEE = BMR × mult. actividad:** `activityLevel 1 → ×1.2`, `2 → ×1.3`, `3 → ×1.4`
+4. **Banda con déficit:**
+   - `calories_to = TDEE − 500`
+   - `calories_from = TDEE − 575`  (banda de 75 kcal, déficit ~500)
+5. **Clamp:** piso mínimo (≈1500/1650 para female) para no bajar de un mínimo saludable.
+
+### Request de generación de plan de comidas
+```json
+{
+  "type": "...",
+  "days": "<PLAN_AMOUNT_OF_DAYS>",
+  "height": 0, "weight": 0, "target_weight": "<goalWeight>",
+  "calories_from": 0, "calories_to": 0,
+  "metric_system": "metric",
+  "age": 0, "gender": "...",
+  "repasts": "<mealsADay || 5>",
+  "activity_level": "...",
+  "force_plan_regeneration": true
+}
+```
+
+> Notas: el ajuste de sexo usa ±161 (el Mifflin estándar es male +5 / female −161; esta app usa ±161). El piso para `male` no se trazó por completo.
+
+---
+
 ## 4. Pendientes / preguntas abiertas
 
 1. **Métodos no confirmados** (marcados "i"): verificar GET/PUT/POST exacto por endpoint en el IR.
