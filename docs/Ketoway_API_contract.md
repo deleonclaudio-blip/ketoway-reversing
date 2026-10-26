@@ -48,12 +48,12 @@ Método: **(c)** = confirmado en el código, **(i)** = inferido por nombre/semá
 | `/v1/content/mains/schemas/1/locales/…` | GET (i) | contenido (planes/comidas) por locale |
 | `/v1/content/challenges/schemas/1/locales/…` | GET (i) | challenges |
 | `/v1/config/upsells/schemas/1` | GET (i) | config de upsells/paywall |
-| `/v1/events` | POST (i) | telemetría de eventos |
 | `/v1/recaptchaParams`, `/v2/recaptchaConfig` | GET (i) | parámetros reCAPTCHA |
 | `/v2/passwordPolicy` | GET (i) | política de contraseñas |
 
 ### No pertenecen a flmng (no confundir)
 - `/v1/subscribers`, `/v1/receipts` → **RevenueCat** (`api.revenuecat.com`), `Authorization: Bearer appl_…`.
+- `/v1/events` → **RevenueCat** (`POST https://e.revenue.cat/v1/events`, o `httpConfig.eventsURL`): ingestión de eventos del SDK (paywall/compras). Cuerpo incluye `apiKey`, `appUserId`, `eventsUrl`, `silent`.
 - `/v1/token`, `identitytoolkit` → **Firebase / GCP Identity Toolkit**.
 
 ### 2.1 Datos de usuario — Firebase Realtime Database (NO es flmng HTTP)
@@ -171,7 +171,7 @@ Constantes del módulo:
 ## 4. Pendientes / preguntas abiertas
 
 1. **Métodos no confirmados** (marcados "i"): verificar GET/PUT/POST exacto por endpoint en el IR.
-2. ~~Payloads de `/userDetails`, `/fasting/plan`, forma del `plan`~~ — **resuelto** (§2.1: RTDB `update`; `plan` = preset de `FASTING_PLANS`). Falta: `/subscriptions/relevant`, `/v1/events`.
+2. ~~Payloads de `/userDetails`, `/fasting/plan`, `/subscriptions/relevant`, `/v1/events`~~ — **resuelto** (§2.1 RTDB; §5 funnel API + RevenueCat). `/v1/events` = RevenueCat, no flmng.
 3. **Enums**: `Gender`, `UnitsOfMeasure`, valores de `activityLevel`.
 4. **Headers completos** por request (además de `Authorization`): reCAPTCHA token, versión de app, locale.
 5. ~~Lógica de paywall/premium~~ — **resuelto** (§5: entitlement `pro` de RevenueCat + funnel API `/subscriptions/relevant`).
