@@ -42,8 +42,9 @@ Método: **(c)** = confirmado en el código, **(i)** = inferido por nombre/semá
 | Ruta | Método | Qué hace |
 |---|---|---|
 | `/register` | POST (c) | alta de usuario (ver §3) |
-| `/subscriptions`, `/subscriptions/relevant` | GET (i) | estado y ofertas de suscripción |
 | `/messages` | GET (i) | mensajes/notificaciones in-app |
+
+> **`/subscriptions/relevant`** no va en esta tabla: usa otra base (**funnel API**, no `CLOUD_FUNCTIONS_URL`) — ver §5.
 | `/v1/content/mains/schemas/1/locales/…` | GET (i) | contenido (planes/comidas) por locale |
 | `/v1/content/challenges/schemas/1/locales/…` | GET (i) | challenges |
 | `/v1/config/upsells/schemas/1` | GET (i) | config de upsells/paywall |
@@ -147,13 +148,33 @@ Son **semillas por defecto**; el quiz de onboarding las sobreescribe luego (vía
 
 ---
 
+## 5. Suscripciones y paywall
+
+### Funnel API (base distinta de flmng)
+```
+GET clients/<client_code>/subscriptions/relevant?origin=<project_origin>
+```
+- Base `createFunnelApiBase` (`projectConfig`), método GET, query param `origin`.
+- Devuelve la suscripción "relevante" del **funnel web** (compra previa por Paddle/Stripe antes de instalar).
+
+### Gate premium (RevenueCat)
+Constantes del módulo:
+- **Entitlements:** `pro` (premium), `coach_access` (función coach).
+- **Productos:** `in_app_coach_1m`, `in_app_coach_3m` (coach 1 y 3 meses).
+- **Offering:** `paywall_b` (variante A/B del paywall).
+- **Reconciliación funnel:** claves `relevantFunnelSubscriptionCheck`, `funnelSubscriptionCheck`.
+
+**Regla:** usuario premium ⇔ RevenueCat `customerInfo.entitlements.active['pro']` activo (`getCustomerInfo()` / `Purchases`). El coach se desbloquea con `coach_access`. Las compras del funnel web se reconcilian con el usuario de la app vía las claves `*FunnelSubscriptionCheck` + `/subscriptions/relevant`.
+
+---
+
 ## 4. Pendientes / preguntas abiertas
 
 1. **Métodos no confirmados** (marcados "i"): verificar GET/PUT/POST exacto por endpoint en el IR.
 2. ~~Payloads de `/userDetails`, `/fasting/plan`, forma del `plan`~~ — **resuelto** (§2.1: RTDB `update`; `plan` = preset de `FASTING_PLANS`). Falta: `/subscriptions/relevant`, `/v1/events`.
 3. **Enums**: `Gender`, `UnitsOfMeasure`, valores de `activityLevel`.
 4. **Headers completos** por request (además de `Authorization`): reCAPTCHA token, versión de app, locale.
-5. **Lógica de paywall/premium**: cómo combina RevenueCat + `/subscriptions/relevant` para decidir acceso.
+5. ~~Lógica de paywall/premium~~ — **resuelto** (§5: entitlement `pro` de RevenueCat + funnel API `/subscriptions/relevant`).
 
 ---
 
