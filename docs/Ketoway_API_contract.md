@@ -217,6 +217,35 @@ El quiz de onboarding recolecta `weight`, `height`, `age`, `gender`, `activityLe
 
 ---
 
+## 8. Contenido de los planes (recetas/comidas)
+
+### Content API (flmng, por locale)
+```
+GET {baseUrl}/v1/content/mains/schemas/1/locales/<locale>        # comidas/recetas
+GET {baseUrl}/v1/content/challenges/schemas/1/locales/<locale>   # challenges
+```
+
+### Modelo de receta (campos confirmados)
+```js
+recipe = {
+  name,
+  calories, protein, fat, carbs,     // macros
+  ingredients: [ { /* nombre */, amount } ],
+  howToMake,                         // instrucciones
+  fileName: name + ".pdf"            // export a PDF (libpdfium)
+  // recipeLabels: etiquetas localizadas (UI/PDF), no valores
+}
+```
+
+### Organización
+- Cache (React Query): `recipes`, `single-recipe`, `recipe-alternatives`, `recipe-favorites`.
+- Comidas por tipo: `breakfast`, `lunch`, `dinner`, `snack`; plan estructurado por `day`.
+- Exportación de recetas a **PDF**.
+
+> El esquema completo de la respuesta de contenido (anidamiento día→comidas→receta) no se mapeó exhaustivamente; los campos de receta de arriba sí están confirmados en el parseo.
+
+---
+
 ## 4. Pendientes / preguntas abiertas
 
 1. **Métodos no confirmados** (marcados "i"): verificar GET/PUT/POST exacto por endpoint en el IR.
